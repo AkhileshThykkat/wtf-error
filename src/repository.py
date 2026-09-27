@@ -30,6 +30,8 @@ from __future__ import annotations
 from typing import Any
 
 COLUMNS = "id, title, symptoms, environment, status, created_at, updated_at"
+MESSAGE_COLUMNS = "id, incident_id, role, content, created_at, updated_at"
+FINDING_COLUMNS = "id, incident_id, title, detail, created_at"
 
 
 async def create_incident(db: Any, incident: dict[str, Any]) -> dict[str, Any]:
@@ -103,6 +105,113 @@ async def list_incidents(
             "status": row.status,
             "created_at": row.created_at,
             "updated_at": row.updated_at,
+        }
+        for row in result.results
+    ]
+
+
+async def create_message(db: Any, message: dict[str, Any]) -> dict[str, Any]:
+    """Insert a complete message record and return it.
+
+    ``message`` is already a complete dictionary containing all 6 fields
+    (``id``, ``incident_id``, ``role``, ``content``,
+    ``created_at``, ``updated_at``). The caller provides the ID,
+    incident ID, role, content, and timestamps -- nothing is generated
+    here.
+    """
+    await (
+        db.prepare(
+            "INSERT INTO messages "
+            "(id, incident_id, role, content, created_at, updated_at) "
+            "VALUES (?, ?, ?, ?, ?, ?)"
+        )
+        .bind(
+            message["id"],
+            message["incident_id"],
+            message["role"],
+            message["content"],
+            message["created_at"],
+            message["updated_at"],
+        )
+        .run()
+    )
+    return dict(message)
+
+
+async def list_messages(
+    db: Any, incident_id: str
+) -> list[dict[str, Any]]:
+    """Return messages for one incident, ordered for conversation history.
+
+    Ordered by ``created_at ASC, id ASC`` so the result can be used
+    directly as investigation conversation history.
+    """
+    result = (
+        await db.prepare(
+            f"SELECT {MESSAGE_COLUMNS} FROM messages "
+            "WHERE incident_id = ? ORDER BY created_at ASC, id ASC"
+        )
+        .bind(incident_id)
+        .all()
+    )
+    return [
+        {
+            "id": row.id,
+            "incident_id": row.incident_id,
+            "role": row.role,
+            "content": row.content,
+            "created_at": row.created_at,
+            "updated_at": row.updated_at,
+        }
+        for row in result.results
+    ]
+
+
+async def create_finding(db: Any, finding: dict[str, Any]) -> dict[str, Any]:
+    """Insert a complete finding record and return it.
+
+    ``finding`` is already a complete dictionary containing all 5 fields
+    (``id``, ``incident_id``, ``title``, ``detail``,
+    ``created_at``). The caller provides all IDs, values, and
+    timestamps -- nothing is generated here.
+    """
+    await (
+        db.prepare(
+            "INSERT INTO findings "
+            "(id, incident_id, title, detail, created_at) "
+            "VALUES (?, ?, ?, ?, ?)"
+        )
+        .bind(
+            finding["id"],
+            finding["incident_id"],
+            finding["title"],
+            finding["detail"],
+            finding["created_at"],
+        )
+        .run()
+    )
+    return dict(finding)
+
+
+async def list_findings(
+    db: Any, incident_id: str
+) -> list[dict[str, Any]]:
+    """Return findings for one incident ordered by created_at ASC, id ASC."""
+    result = (
+        await db.prepare(
+            f"SELECT {FINDING_COLUMNS} FROM findings "
+            "WHERE incident_id = ? ORDER BY created_at ASC, id ASC"
+        )
+        .bind(incident_id)
+        .all()
+    )
+    return [
+        {
+            "id": row.id,
+            "incident_id": row.incident_id,
+            "title": row.title,
+            "detail": row.detail,
+            "created_at": row.created_at,
         }
         for row in result.results
     ]
