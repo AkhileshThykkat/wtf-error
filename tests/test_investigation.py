@@ -115,6 +115,7 @@ def _load_schema(conn: sqlite3.Connection) -> None:
         "0001_create_incidents.sql",
         "0002_create_messages.sql",
         "0003_create_findings.sql",
+        "0004_create_evidence_and_finding_refs.sql",
     ):
         conn.executescript((MIGRATIONS / name).read_text())
 
@@ -123,6 +124,7 @@ PAYLOAD = {
     "analysis": "502s point at the backend not accepting connections.",
     "possible_causes": ["backend down", "wrong listen address"],
     "next_steps": ["check systemd status", "curl localhost:8000"],
+    "findings": [],
 }
 
 
@@ -179,7 +181,8 @@ class InvestigationServiceTest(unittest.IsolatedAsyncioTestCase):
         result = await investigate_incident(self.db, ai, "inc-1")
         self.assertEqual(result, PAYLOAD)
         self.assertEqual(
-            set(result.keys()), {"analysis", "possible_causes", "next_steps"}
+            set(result.keys()),
+            {"analysis", "possible_causes", "next_steps", "findings"},
         )
 
     async def test_default_model_is_used_unless_overridden(self) -> None:
@@ -242,12 +245,15 @@ class InvestigationServiceTest(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(ValueError):
             await investigate_incident(self.db, PlainTextAI(), "inc-1")
 
-    async def test_nothing_is_persisted(self) -> None:
+    async def test_assistant_result_is_persisted(self) -> None:
         ai = FakeAI(dict(PAYLOAD))
         await investigate_incident(self.db, ai, "inc-1")
-        self.assertEqual(
-            self.conn.execute("SELECT COUNT(*) FROM messages").fetchone()[0], 1
-        )
+        messages = self.conn.execute(
+            "SELECT role, content FROM messages ORDER BY created_at, id"
+        ).fetchall()
+        self.assertEqual(len(messages), 2)
+        self.assertEqual(messages[-1][0], "assistant")
+        self.assertIn(PAYLOAD["analysis"], messages[-1][1])
         self.assertEqual(
             self.conn.execute("SELECT COUNT(*) FROM findings").fetchone()[0], 1
         )

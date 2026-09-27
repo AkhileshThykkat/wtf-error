@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#101714" />
+    <title>WTF Error — Incident desk</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Incident navigation">
+        <a class="brand" href="/" aria-label="WTF Error home">
+          <span class="brand-mark">?</span>
+          <span><strong>wtf error</strong><small>incident desk</small></span>
+        </a>
+        <div class="sidebar-heading">
+          <span>INCIDENTS</span>
+          <button class="icon-button" id="new-incident-open" type="button" aria-label="Create incident">+</button>
+        </div>
+        <nav id="incident-list" class="incident-list" aria-label="Incidents"></nav>
+        <p class="sidebar-foot">A calmer place to figure out what broke.</p>
+      </aside>
+
+      <main id="main" class="main-content">
+        <section id="welcome" class="welcome-panel">
+          <div class="eyebrow">INCIDENT WORKSPACE</div>
+          <h1>Let’s work out what happened.</h1>
+          <p>Start an incident, add the useful logs, then investigate with the evidence in view.</p>
+          <button class="button button-primary" id="new-incident-welcome" type="button">Start an incident <span>→</span></button>
+        </section>
+
+        <div id="incident-workspace" class="workspace" hidden>
+          <header class="incident-header">
+            <div>
+              <div class="eyebrow">INCIDENT <span id="incident-status" class="status-pill">OPEN</span></div>
+              <h1 id="incident-title"></h1>
+              <p id="incident-environment" class="muted"></p>
+            </div>
+            <button class="button button-primary" id="investigate-button" type="button">Investigate <span>↗</span></button>
+          </header>
+
+          <div class="workspace-grid">
+            <div class="main-column">
+              <section class="card symptoms-card">
+                <div class="section-heading"><div><div class="eyebrow">WHAT’S HAPPENING</div><h2>Symptoms</h2></div></div>
+                <p id="incident-symptoms" class="body-copy"></p>
+              </section>
+
+              <section class="card conversation-card">
+                <div class="section-heading"><div><div class="eyebrow">THINK IT THROUGH</div><h2>Investigation</h2></div><span class="subtle-tag">AI-assisted · evidence first</span></div>
+                <div id="conversation" class="conversation" aria-live="polite"></div>
+                <form id="message-form" class="composer">
+                  <label class="sr-only" for="message-input">Ask a follow-up or add context</label>
+                  <textarea id="message-input" rows="2" maxlength="10000" placeholder="Ask a follow-up or add context…"></textarea>
+                  <button class="button button-dark" type="submit">Send & investigate <span>↗</span></button>
+                </form>
+                <p class="privacy-note">Evidence and chat are checked for common credentials before they are saved.</p>
+              </section>
+            </div>
+
+            <aside class="side-column">
+              <section class="card evidence-card">
+                <div class="section-heading"><div><div class="eyebrow">WHAT WE KNOW</div><h2>Evidence</h2></div><span id="evidence-count" class="count-badge">0</span></div>
+                <div id="evidence-list" class="evidence-list"></div>
+                <details class="evidence-add">
+                  <summary>＋ Add logs or command output</summary>
+                  <form id="evidence-form">
+                    <label for="evidence-source">Where did this come from?</label>
+                    <input id="evidence-source" maxlength="120" placeholder="e.g. api.log, journalctl" />
+                    <label for="evidence-content">Paste evidence</label>
+                    <textarea id="evidence-content" rows="7" maxlength="40000" required placeholder="Paste logs or command output here…"></textarea>
+                    <button class="button button-primary" type="submit">Save evidence</button>
+                  </form>
+                </details>
+              </section>
+
+              <section class="card findings-card">
+                <div class="section-heading"><div><div class="eyebrow">SUPPORTED BY EVIDENCE</div><h2>Findings</h2></div><span id="finding-count" class="count-badge">0</span></div>
+                <div id="finding-list" class="finding-list"></div>
+              </section>
+            </aside>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <dialog id="incident-dialog">
+      <form id="incident-form" class="dialog-form">
+        <button class="dialog-close icon-button" id="new-incident-close" type="button" aria-label="Close">×</button>
+        <div class="eyebrow">NEW INCIDENT</div>
+        <h2>What’s going wrong?</h2>
+        <label for="new-title">Short title</label>
+        <input id="new-title" required minlength="3" maxlength="120" placeholder="Checkout requests are timing out" />
+        <label for="new-symptoms">Symptoms</label>
+        <textarea id="new-symptoms" required minlength="10" maxlength="5000" rows="4" placeholder="What are you seeing? When did it start?"></textarea>
+        <label for="new-environment">Environment</label>
+        <textarea id="new-environment" required minlength="3" maxlength="1000" rows="2" placeholder="Services, versions, recent changes…"></textarea>
+        <button class="button button-primary" type="submit">Create incident <span>→</span></button>
+      </form>
+    </dialog>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>

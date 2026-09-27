@@ -106,6 +106,7 @@ def _load_schema(conn: sqlite3.Connection) -> None:
         "0001_create_incidents.sql",
         "0002_create_messages.sql",
         "0003_create_findings.sql",
+        "0004_create_evidence_and_finding_refs.sql",
     ):
         conn.executescript((MIGRATIONS / name).read_text())
 

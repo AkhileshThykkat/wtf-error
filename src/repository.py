@@ -27,11 +27,13 @@ exception propagates to the caller.
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 COLUMNS = "id, title, symptoms, environment, status, created_at, updated_at"
 MESSAGE_COLUMNS = "id, incident_id, role, content, created_at, updated_at"
-FINDING_COLUMNS = "id, incident_id, title, detail, created_at"
+FINDING_COLUMNS = "id, incident_id, title, detail, evidence_line_ids, created_at"
+EVIDENCE_COLUMNS = "id, incident_id, source, content, created_at"
 
 
 async def create_incident(db: Any, incident: dict[str, Any]) -> dict[str, Any]:
@@ -170,22 +172,21 @@ async def list_messages(
 async def create_finding(db: Any, finding: dict[str, Any]) -> dict[str, Any]:
     """Insert a complete finding record and return it.
 
-    ``finding`` is already a complete dictionary containing all 5 fields
-    (``id``, ``incident_id``, ``title``, ``detail``,
-    ``created_at``). The caller provides all IDs, values, and
-    timestamps -- nothing is generated here.
+    ``evidence_line_ids`` is stored as JSON text so existing finding rows
+    remain valid and every new finding can cite the pasted evidence.
     """
     await (
         db.prepare(
             "INSERT INTO findings "
-            "(id, incident_id, title, detail, created_at) "
-            "VALUES (?, ?, ?, ?, ?)"
+            "(id, incident_id, title, detail, evidence_line_ids, created_at) "
+            "VALUES (?, ?, ?, ?, ?, ?)"
         )
         .bind(
             finding["id"],
             finding["incident_id"],
             finding["title"],
             finding["detail"],
+            json.dumps(finding.get("evidence_line_ids", [])),
             finding["created_at"],
         )
         .run()
@@ -211,6 +212,44 @@ async def list_findings(
             "incident_id": row.incident_id,
             "title": row.title,
             "detail": row.detail,
+            "evidence_line_ids": json.loads(row.evidence_line_ids),
+            "created_at": row.created_at,
+        }
+        for row in result.results
+    ]
+
+
+async def create_evidence(db: Any, item: dict[str, Any]) -> dict[str, Any]:
+    """Insert already-redacted, line-labelled evidence and return it."""
+    await (
+        db.prepare(
+            "INSERT INTO evidence (id, incident_id, source, content, created_at) "
+            "VALUES (?, ?, ?, ?, ?)"
+        )
+        .bind(
+            item["id"], item["incident_id"], item["source"],
+            item["content"], item["created_at"],
+        )
+        .run()
+    )
+    return dict(item)
+
+
+async def list_evidence(db: Any, incident_id: str) -> list[dict[str, Any]]:
+    result = (
+        await db.prepare(
+            f"SELECT {EVIDENCE_COLUMNS} FROM evidence "
+            "WHERE incident_id = ? ORDER BY created_at ASC, id ASC"
+        )
+        .bind(incident_id)
+        .all()
+    )
+    return [
+        {
+            "id": row.id,
+            "incident_id": row.incident_id,
+            "source": row.source,
+            "content": row.content,
             "created_at": row.created_at,
         }
         for row in result.results
