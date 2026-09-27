@@ -1,9 +1,14 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-
   "name": "wtf-error",
   "main": "src/main.py",
-
   "compatibility_date": "2026-09-27",
   "compatibility_flags": ["python_workers"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "wtf-prod-db",
+      "database_id": "53fac87a-8ebc-48e5-8fb6-b841c4ba74b2",
+    },
+  ],
 }

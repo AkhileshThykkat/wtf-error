@@ -17,3 +17,13 @@ class IncidentCreate(BaseModel):
     title: str = Field(min_length=3, max_length=120)
     symptoms: str = Field(min_length=10, max_length=5000)
     environment: str = Field(min_length=3, max_length=1000)
+
+
+class IncidentResponse(BaseModel):
+    id: str
+    title: str
+    symptoms: str
+    environment: str
+    status: str
+    created_at: str
+    updated_at: str
