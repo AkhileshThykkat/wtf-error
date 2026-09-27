@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
 
-  "name": "wtf-prod",
+  "name": "wtf-error",
   "main": "src/main.py",
 
   "compatibility_date": "2026-09-27",

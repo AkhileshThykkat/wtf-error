@@ -1,3 +1,31 @@
 project-includes = ["src"]
 python-version = "3.13"
 python-interpreter-path = ".venv/bin/python"
+
+# Strictness
+untyped-def-behavior = "check-and-infer-return-type"
+permissive-ignores = false          # only `# pyrefly: ignore`, not blanket `# type: ignore`
+strict-callable-subtyping = true
+
+[errors]
+# Require annotations
+unannotated-parameter = "error"
+unannotated-return = "error"
+unannotated-attribute = "error"
+implicit-any = "error"
+no-any-return = "error"
+
+# Catch dead / sloppy code
+redundant-cast = "error"
+redundant-condition = "error"
+unnecessary-comparison = "error"
+unreachable = "error"
+non-exhaustive-match = "error"
+unused-ignore = "error"
+deprecated = "error"
+
+# OOP hygiene
+missing-override-decorator = "error"
+implicitly-defined-attribute = "error"
+implicit-import = "error"
+not-required-key-access = "error"
