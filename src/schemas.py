@@ -1,0 +1,19 @@
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class IncidentCreate(BaseModel):
+    model_config = ConfigDict(
+        str_strip_whitespace=True,
+        extra="forbid",
+        json_schema_extra={
+            "example": {
+                "title": "Nginx returns 502",
+                "symptoms": "Every API request returns 502 after restarting the backend.",
+                "environment": "Ubuntu server, Nginx, FastAPI running as a systemd service.",
+            }
+        },
+    )
+
+    title: str = Field(min_length=3, max_length=120)
+    symptoms: str = Field(min_length=10, max_length=5000)
+    environment: str = Field(min_length=3, max_length=1000)
