@@ -17,3 +17,6 @@ python_modules/
 pylock.toml
 .dev.vars*
 !.dev.vars.example
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/
